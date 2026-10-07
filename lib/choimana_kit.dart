@@ -11,3 +11,5 @@ export 'genre.dart';
 export 'lesson.dart';
 export 'src/source.dart';
 export 'srs.dart';
+export 'validation/content_validator.dart';
+export 'validation/forbidden_words.dart';
