@@ -1,4 +1,4 @@
-import 'package:choimana_kit/freshness.dart';
+import 'package:choimana_core/freshness.dart';
 import 'package:test/test.dart';
 
 void main() {

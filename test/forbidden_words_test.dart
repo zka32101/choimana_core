@@ -1,4 +1,4 @@
-import 'package:choimana_kit/validation/forbidden_words.dart';
+import 'package:choimana_core/validation/forbidden_words.dart';
 import 'package:test/test.dart';
 
 void main() {

@@ -1,7 +1,7 @@
 import 'dart:convert';
 
-import 'package:choimana_kit/delivery/delivery_client.dart';
-import 'package:choimana_kit/delivery/manifest.dart';
+import 'package:choimana_core/delivery/delivery_client.dart';
+import 'package:choimana_core/delivery/manifest.dart';
 import 'package:crypto/crypto.dart';
 import 'package:test/test.dart';
 

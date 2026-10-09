@@ -1,7 +1,7 @@
 /// 間隔反復（Leitner方式）。問題ID単位で復習時期を管理する。
 ///
-/// yourwish_kentei の Srs と同じ考え方だが、試験に依存しないため
-/// choimana_kit 側に独立して持つ（将来 yourwish_learn へ統合する前提）。
+/// ukalab_core の Srs と同じ考え方だが、試験に依存しないため
+/// choimana_core 側に独立して持つ（将来 yourwish_learn へ統合する前提）。
 library;
 
 class SrsItem {

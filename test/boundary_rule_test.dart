@@ -1,5 +1,5 @@
-import 'package:choimana_kit/experience/boundary_rule.dart';
-import 'package:choimana_kit/src/source.dart';
+import 'package:choimana_core/experience/boundary_rule.dart';
+import 'package:choimana_core/src/source.dart';
 import 'package:test/test.dart';
 
 void main() {
