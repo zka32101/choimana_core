@@ -1,7 +1,7 @@
-import 'package:choimana_kit/experience/boundary_rule.dart';
-import 'package:choimana_kit/lesson.dart';
-import 'package:choimana_kit/src/source.dart';
-import 'package:choimana_kit/validation/content_validator.dart';
+import 'package:choimana_core/experience/boundary_rule.dart';
+import 'package:choimana_core/lesson.dart';
+import 'package:choimana_core/src/source.dart';
+import 'package:choimana_core/validation/content_validator.dart';
 import 'package:test/test.dart';
 
 Source _source() => Source(

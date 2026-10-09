@@ -1,8 +1,8 @@
-import 'package:choimana_kit/daily_pick.dart';
-import 'package:choimana_kit/genre.dart';
-import 'package:choimana_kit/lesson.dart';
-import 'package:choimana_kit/src/source.dart';
-import 'package:choimana_kit/srs.dart';
+import 'package:choimana_core/daily_pick.dart';
+import 'package:choimana_core/genre.dart';
+import 'package:choimana_core/lesson.dart';
+import 'package:choimana_core/src/source.dart';
+import 'package:choimana_core/srs.dart';
 import 'package:test/test.dart';
 
 Lesson _lesson(String id, {DateTime? reviewedAt}) => Lesson(

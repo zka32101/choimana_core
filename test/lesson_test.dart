@@ -1,5 +1,5 @@
-import 'package:choimana_kit/lesson.dart';
-import 'package:choimana_kit/src/source.dart';
+import 'package:choimana_core/lesson.dart';
+import 'package:choimana_core/src/source.dart';
 import 'package:test/test.dart';
 
 Lesson _buildLesson({DateTime? reviewedAt, LessonRank rank = LessonRank.low}) {

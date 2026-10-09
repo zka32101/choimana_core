@@ -9,7 +9,7 @@ library;
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:choimana_kit/choimana_kit.dart';
+import 'package:choimana_core/choimana_core.dart';
 
 Future<void> main(List<String> args) async {
   final root = args.isNotEmpty ? args.first : 'content';

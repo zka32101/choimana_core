@@ -1,5 +1,5 @@
-import 'package:choimana_kit/calculator.dart';
-import 'package:choimana_kit/src/source.dart';
+import 'package:choimana_core/calculator.dart';
+import 'package:choimana_core/src/source.dart';
 import 'package:test/test.dart';
 
 class _TakeHomePayCalculator extends Calculator {

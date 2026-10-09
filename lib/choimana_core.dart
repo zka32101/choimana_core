@@ -1,4 +1,4 @@
-/// ちょいまな共通基盤（choimana_kit）。
+/// ちょいまな共通基盤（choimana_core）。
 library;
 
 export 'calculator.dart';

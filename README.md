@@ -1,4 +1,4 @@
-# choimana_kit
+# choimana_core
 
 「ちょいまな」（資格以外の大人の学び。お金→AI活用→仕事スキル→暮らしの法律・制度→語学・教養）の共通基盤。
 
@@ -6,8 +6,8 @@
 
 ```
 アプリ（ちょいまな お金 / AI活用 など）
- → choimana_kit（このリポジトリ）
- → yourwish_learn（学習の共通部分。未切り出し。切り出すまでは choimana_kit 内に型部品を先行実装）
+ → choimana_core（このリポジトリ）
+ → yourwish_learn（学習の共通部分。未切り出し。切り出すまでは choimana_core 内に型部品を先行実装）
  → app_common_kit（フィードバック・権利・広告ゲート・テーマ・UI・推し・コイン）
 ```
 

@@ -1,4 +1,4 @@
-name: choimana_kit
+name: choimana_core
 description: "ちょいまな（資格以外の大人の学び）の共通基盤。Lesson・Track・DailyPick・Freshness・BoundaryRule・Calculator・配信クライアント。"
 version: 0.1.0
 publish_to: 'none'
@@ -6,10 +6,10 @@ publish_to: 'none'
 environment:
   sdk: ^3.9.0
 
-# 依存の向き: アプリ → choimana_kit → yourwish_learn → app_common_kit。
+# 依存の向き: アプリ → choimana_core → yourwish_learn → app_common_kit。
 # yourwish_learn はまだ存在しない（ukalab_core から切り出し予定）ため、
 # このバージョンでは学習体験の型部品（境界線スライダー・予測→実行等）を
-# choimana_kit 内に先行実装する。切り出し後に依存を切り替える。
+# choimana_core 内に先行実装する。切り出し後に依存を切り替える。
 dependencies:
   crypto: ^3.0.3
 
