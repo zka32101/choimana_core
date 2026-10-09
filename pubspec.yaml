@@ -7,7 +7,7 @@ environment:
   sdk: ^3.9.0
 
 # 依存の向き: アプリ → choimana_kit → yourwish_learn → app_common_kit。
-# yourwish_learn はまだ存在しない（yourwish_kentei から切り出し予定）ため、
+# yourwish_learn はまだ存在しない（ukalab_core から切り出し予定）ため、
 # このバージョンでは学習体験の型部品（境界線スライダー・予測→実行等）を
 # choimana_kit 内に先行実装する。切り出し後に依存を切り替える。
 dependencies:

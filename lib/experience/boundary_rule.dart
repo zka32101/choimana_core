@@ -4,7 +4,7 @@ import '../src/source.dart';
 
 /// 境界線スライダー（型①、決定76）の二値条件。
 ///
-/// yourwish_kentei の BoundaryCondition と同じ構造だが、examId を持たない
+/// ukalab_core の BoundaryCondition と同じ構造だが、examId を持たない
 /// （ちょいまなには試験の概念がないため）。将来 yourwish_learn が切り出され
 /// たら、そちらの型部品への依存に切り替える前提。
 class BoundaryCondition {
