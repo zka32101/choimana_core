@@ -5,14 +5,15 @@ import 'package:choimana_core/src/source.dart';
 import 'package:choimana_core/srs.dart';
 import 'package:test/test.dart';
 
-Lesson _lesson(String id, {DateTime? reviewedAt}) => Lesson(
+Lesson _lesson(String id, {DateTime? reviewedAt, String? calcId}) => Lesson(
       lessonId: id,
       trackId: 'A',
       title: id,
       minutes: 3,
-      kind: LessonKind.basic,
+      kind: calcId != null ? LessonKind.predict : LessonKind.basic,
       rank: LessonRank.low,
-      cards: const [LessonCard(cardId: 'c1', text: '要点')],
+      calcId: calcId,
+      cards: [LessonCard(cardId: 'c1', text: calcId != null ? '要点（目安）' : '要点')],
       quiz: const [
         Quiz(qid: 'q1', type: QuizType.truefalse, stem: 's', answer: 'true', explain: 'e'),
         Quiz(qid: 'q2', type: QuizType.truefalse, stem: 's2', answer: 'true', explain: 'e2'),
@@ -98,5 +99,101 @@ void main() {
     );
 
     expect(pick!.reviewQuiz!.qid, 'q1');
+  });
+
+  group('isCalcDeliverableAt（Calculatorの配信可否との合成）', () {
+    test('isCalcDeliverableAtを渡さなければ、calcIdの配信可否は見ずに選ぶ（従来の挙動）', () {
+      final track = const Track(
+        trackId: 'A',
+        genreId: 'money',
+        name: 'トラックA',
+        order: 1,
+        lessonIds: ['A-1'],
+      );
+      final lesson = _lesson('A-1', calcId: 'take-home-pay');
+
+      final pick = DailyPickSelector.pick(
+        tracks: [track],
+        lessonsById: {'A-1': lesson},
+        completedLessonIds: {},
+        srsItems: const [],
+        quizById: const {},
+        now: DateTime(2026, 1, 2),
+      );
+
+      expect(pick!.lesson.lessonId, 'A-1');
+    });
+
+    test('calcIdが配信不可なら、isCalcDeliverableAtを渡すとそのレッスンをスキップする', () {
+      final track = const Track(
+        trackId: 'A',
+        genreId: 'money',
+        name: 'トラックA',
+        order: 1,
+        lessonIds: ['A-1', 'A-2'],
+      );
+      final lessons = {
+        'A-1': _lesson('A-1', calcId: 'take-home-pay'),
+        'A-2': _lesson('A-2'),
+      };
+
+      final pick = DailyPickSelector.pick(
+        tracks: [track],
+        lessonsById: lessons,
+        completedLessonIds: {},
+        srsItems: const [],
+        quizById: const {},
+        now: DateTime(2026, 1, 2),
+        isCalcDeliverableAt: (calcId, now) => false,
+      );
+
+      expect(pick!.lesson.lessonId, 'A-2');
+    });
+
+    test('calcIdが配信可能なら、isCalcDeliverableAtを渡してもそのレッスンが選ばれる', () {
+      final track = const Track(
+        trackId: 'A',
+        genreId: 'money',
+        name: 'トラックA',
+        order: 1,
+        lessonIds: ['A-1'],
+      );
+      final lesson = _lesson('A-1', calcId: 'take-home-pay');
+
+      final pick = DailyPickSelector.pick(
+        tracks: [track],
+        lessonsById: {'A-1': lesson},
+        completedLessonIds: {},
+        srsItems: const [],
+        quizById: const {},
+        now: DateTime(2026, 1, 2),
+        isCalcDeliverableAt: (calcId, now) => calcId == 'take-home-pay',
+      );
+
+      expect(pick!.lesson.lessonId, 'A-1');
+    });
+
+    test('calcIdを持たないレッスンはisCalcDeliverableAtの影響を受けない', () {
+      final track = const Track(
+        trackId: 'A',
+        genreId: 'money',
+        name: 'トラックA',
+        order: 1,
+        lessonIds: ['A-1'],
+      );
+      final lesson = _lesson('A-1');
+
+      final pick = DailyPickSelector.pick(
+        tracks: [track],
+        lessonsById: {'A-1': lesson},
+        completedLessonIds: {},
+        srsItems: const [],
+        quizById: const {},
+        now: DateTime(2026, 1, 2),
+        isCalcDeliverableAt: (calcId, now) => false,
+      );
+
+      expect(pick!.lesson.lessonId, 'A-1');
+    });
   });
 }

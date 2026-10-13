@@ -6,6 +6,7 @@ library;
 
 import '../experience/boundary_rule.dart';
 import '../freshness.dart';
+import '../genre.dart';
 import '../glossary.dart';
 import '../lesson.dart';
 import 'forbidden_words.dart';
@@ -208,7 +209,7 @@ List<ValidationIssue> validateBoundaryRule(BoundaryRule rule, DateTime now) {
 }
 
 /// コンテンツ全体の参照整合性チェック（[Lesson.ruleId]/[Lesson.calcId]/
-/// [LessonCard.termRefs] が実在するIDを指しているか）。
+/// [LessonCard.termRefs]・[Track.lessonIds] が実在するIDを指しているか）。
 ///
 /// [validateLesson]/[validateBoundaryRule]/[validateGlossaryTerm] は1件単位の
 /// 検証のため、他のコンテンツを参照する壊れたID（削除・リネーム漏れ等）は
@@ -217,15 +218,35 @@ List<ValidationIssue> validateBoundaryRule(BoundaryRule rule, DateTime now) {
 /// [knownCalcIds] は choimana_core が知らない Calculator の `calcId` 一覧を
 /// アプリ側（例: choimana_okane）から渡す。省略した場合、`calcId` のチェックは
 /// 行わない（空集合を「存在しない」と区別できないため）。
+///
+/// [tracks] は省略可。渡した場合、各 [Track.lessonIds] が実在する
+/// [Lesson.lessonId] を指しているかを検証する（[DailyPickSelector] が
+/// 存在しない lessonId を静かに無視してしまうのを防ぐ）。
 List<ValidationIssue> validateCrossReferences({
   required List<Lesson> lessons,
   required List<BoundaryRule> boundaryRules,
   required List<GlossaryTerm> glossaryTerms,
   Set<String>? knownCalcIds,
+  List<Track> tracks = const [],
 }) {
   final issues = <ValidationIssue>[];
   final ruleIds = boundaryRules.map((r) => r.ruleId).toSet();
   final termIds = glossaryTerms.map((t) => t.id).toSet();
+  final lessonIds = lessons.map((l) => l.lessonId).toSet();
+
+  for (final track in tracks) {
+    for (final lessonId in track.lessonIds) {
+      if (!lessonIds.contains(lessonId)) {
+        issues.add(
+          ValidationIssue(
+            level: IssueLevel.error,
+            contentId: track.trackId,
+            message: 'lessonIds「$lessonId」に対応する Lesson が見つかりません',
+          ),
+        );
+      }
+    }
+  }
 
   for (final lesson in lessons) {
     final contentId = lesson.lessonId;

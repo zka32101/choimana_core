@@ -20,6 +20,13 @@ class DailyPickSelector {
   /// [tracks] の順序（Track.order→lessonIds の順）に沿って、
   /// [completedLessonIds] に含まれない最初のレッスンを選ぶ。
   /// 復習は [srsItems] のうち due のものの先頭から、[quizById] で問題を探す。
+  ///
+  /// [Lesson.isDeliverableAt] は鮮度のみの判定で、`kind: predict`/`boundary`
+  /// のレッスンが参照する Calculator（`calcId`）・BoundaryRule（`ruleId`）
+  /// 自体の配信可否までは見ない。choimana_core は Calculator の実体を
+  /// 知らない（アプリ側の型）ため、[isCalcDeliverableAt] を渡せば
+  /// `calcId` を持つレッスンの選定時にもその判定を合成できる
+  /// （省略した場合は従来通り鮮度のみで判定する）。
   static DailyPick? pick({
     required List<Track> tracks,
     required Map<String, Lesson> lessonsById,
@@ -27,6 +34,7 @@ class DailyPickSelector {
     required List<SrsItem> srsItems,
     required Map<String, Quiz> quizById,
     required DateTime now,
+    bool Function(String calcId, DateTime now)? isCalcDeliverableAt,
   }) {
     final sortedTracks = [...tracks]..sort((a, b) => a.order.compareTo(b.order));
 
@@ -37,6 +45,12 @@ class DailyPickSelector {
         if (lesson == null) continue;
         if (completedLessonIds.contains(lessonId)) continue;
         if (!lesson.isDeliverableAt(now)) continue;
+        final calcId = lesson.calcId;
+        if (calcId != null &&
+            isCalcDeliverableAt != null &&
+            !isCalcDeliverableAt(calcId, now)) {
+          continue;
+        }
         nextLesson = lesson;
         break;
       }

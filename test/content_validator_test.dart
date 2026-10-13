@@ -1,4 +1,5 @@
 import 'package:choimana_core/experience/boundary_rule.dart';
+import 'package:choimana_core/genre.dart';
 import 'package:choimana_core/glossary.dart';
 import 'package:choimana_core/lesson.dart';
 import 'package:choimana_core/src/source.dart';
@@ -240,6 +241,51 @@ void main() {
       );
       expect(issues.single.level, IssueLevel.warn);
       expect(issues.single.message, contains('missing-term'));
+    });
+
+    test('tracksを渡さなければlessonIdsはチェックしない', () {
+      final issues = validateCrossReferences(
+        lessons: const [],
+        boundaryRules: const [],
+        glossaryTerms: const [],
+      );
+      expect(issues, isEmpty);
+    });
+
+    test('tracksのlessonIdsが実在すればエラーなし', () {
+      final issues = validateCrossReferences(
+        lessons: [lessonWith()],
+        boundaryRules: const [],
+        glossaryTerms: const [],
+        tracks: const [
+          Track(trackId: 'T', genreId: 'money', name: 'トラック', order: 1, lessonIds: ['A-1']),
+        ],
+      );
+      expect(issues, isEmpty);
+    });
+
+    test('tracksのlessonIdsに存在しないLessonがあればエラー', () {
+      final issues = validateCrossReferences(
+        lessons: [lessonWith()],
+        boundaryRules: const [],
+        glossaryTerms: const [],
+        tracks: const [
+          Track(
+            trackId: 'T',
+            genreId: 'money',
+            name: 'トラック',
+            order: 1,
+            lessonIds: ['A-1', 'missing-lesson'],
+          ),
+        ],
+      );
+      expect(
+        issues.any((i) =>
+            i.level == IssueLevel.error &&
+            i.contentId == 'T' &&
+            i.message.contains('missing-lesson')),
+        isTrue,
+      );
     });
   });
 }
