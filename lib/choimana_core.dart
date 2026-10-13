@@ -5,6 +5,7 @@ export 'calculator.dart';
 export 'daily_pick.dart';
 export 'delivery/delivery_client.dart';
 export 'delivery/manifest.dart';
+export 'delivery/manifest_builder.dart';
 export 'experience/boundary_rule.dart';
 export 'freshness.dart';
 export 'genre.dart';
