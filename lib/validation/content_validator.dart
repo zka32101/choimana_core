@@ -6,6 +6,7 @@ library;
 
 import '../experience/boundary_rule.dart';
 import '../freshness.dart';
+import '../glossary.dart';
 import '../lesson.dart';
 import 'forbidden_words.dart';
 
@@ -133,6 +134,20 @@ List<ValidationIssue> validateLesson(Lesson lesson, DateTime now) {
     issues.add(
       ValidationIssue(level: IssueLevel.warn, contentId: contentId, message: '鮮度の見直し時期が近づいています'),
     );
+  }
+
+  return issues;
+}
+
+/// [GlossaryTerm] 1件の検証。数値・施行日を持たないため出典・鮮度は必須に
+/// していないが、定義文・例文に断定・勧誘表現が混じらないことを検証する。
+List<ValidationIssue> validateGlossaryTerm(GlossaryTerm term) {
+  final issues = <ValidationIssue>[];
+  final contentId = term.id;
+
+  issues.addAll(_scanTextFields(contentId, {'definition': term.definition}));
+  if (term.example != null) {
+    issues.addAll(_scanTextFields(contentId, {'example': term.example!}));
   }
 
   return issues;

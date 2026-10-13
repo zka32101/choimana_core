@@ -8,6 +8,7 @@ export 'delivery/manifest.dart';
 export 'experience/boundary_rule.dart';
 export 'freshness.dart';
 export 'genre.dart';
+export 'glossary.dart';
 export 'lesson.dart';
 export 'src/source.dart';
 export 'srs.dart';
