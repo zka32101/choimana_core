@@ -91,6 +91,17 @@ abstract class Calculator with FreshnessAware {
   bool parametersValidAt(DateTime now) =>
       parameters.every((p) => p.isValidAt(now));
 
+  /// 実際に配信してよいか（[now] 時点）。
+  ///
+  /// [FreshnessAware.isDeliverableAt] は鮮度（[reviewedAt] からの経過日数）
+  /// だけを見るため、[parameters] が期限切れでも true を返してしまう
+  /// （鮮度はOKでも定数の出典確認が済んでいない、というケースがあるため）。
+  /// 配信判定は必ずこちらを使うこと。他の [Calculator] に依存する場合は、
+  /// [isFullyDeliverableAt] をオーバーライドして依存先の判定も合成する
+  /// （例: `super.isFullyDeliverableAt(now) && _dependency.isFullyDeliverableAt(now)`）。
+  bool isFullyDeliverableAt(DateTime now) =>
+      isDeliverableAt(now) && parametersValidAt(now);
+
   /// 入力値から目安の計算結果を返す。実装は純粋関数にし、
   /// 入力値を保存・送信してはならない。
   CalculatorResult compute(Map<String, double> inputs);

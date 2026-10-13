@@ -36,6 +36,36 @@ class _TakeHomePayCalculator extends Calculator {
   }
 }
 
+class _ExpiredParamCalculator extends Calculator {
+  _ExpiredParamCalculator({required super.reviewedAt})
+      : super(
+          calcId: 'expired-param-example',
+          title: '期限切れパラメータの例',
+          parameters: [
+            Parameter(
+              paramId: 'rate',
+              value: 0.1,
+              unit: '割合',
+              basis: '出典未確認',
+              lawVersion: '出典未確認',
+              retrievedAt: DateTime(2026, 1, 1),
+              expiresAt: DateTime(2026, 1, 1),
+            ),
+          ],
+          sources: [
+            Source(
+              title: '出典未確認',
+              url: 'https://example.com',
+              publisher: 'N/A',
+              retrievedAt: DateTime(2026, 1, 1),
+            ),
+          ],
+        );
+
+  @override
+  CalculatorResult compute(Map<String, double> inputs) => const CalculatorResult(value: 0);
+}
+
 void main() {
   test('定数はParameter表から取り、結果は目安表示', () {
     final calc = _TakeHomePayCalculator(reviewedAt: DateTime(2026, 1, 1));
@@ -48,5 +78,34 @@ void main() {
     final calc = _TakeHomePayCalculator(reviewedAt: DateTime(2026, 1, 1));
     expect(calc.parametersValidAt(DateTime(2026, 6, 1)), isTrue);
     expect(calc.parametersValidAt(DateTime(2027, 6, 1)), isFalse);
+  });
+
+  group('isFullyDeliverableAt', () {
+    test('鮮度OK・定数も有効なら true', () {
+      final calc = _TakeHomePayCalculator(reviewedAt: DateTime(2026, 1, 1));
+      expect(calc.isFullyDeliverableAt(DateTime(2026, 6, 1)), isTrue);
+    });
+
+    test('鮮度はOKでも定数が期限切れなら false（isDeliverableAtだけでは検出できない）', () {
+      // reviewedAtは2026-1-1のまま（鮮度は十分新しい）だが、定数自体の
+      // expiresAtが過去になるケース（意図的に期限切れにした未検証パラメータ等）。
+      final calc = _TakeHomePayCalculator(reviewedAt: DateTime(2026, 1, 1));
+      final now = DateTime(2026, 2, 1); // reviewedAtから31日・鮮度はまだok
+      expect(calc.isDeliverableAt(now), isTrue);
+      // 定数の expiresAt(2027-1-1) はまだ有効なので、代わりに期限切れの
+      // 計算機で確認する。
+      final expiredCalc = _ExpiredParamCalculator(reviewedAt: DateTime(2026, 1, 1));
+      expect(expiredCalc.isDeliverableAt(now), isTrue);
+      expect(expiredCalc.parametersValidAt(now), isFalse);
+      expect(expiredCalc.isFullyDeliverableAt(now), isFalse);
+    });
+
+    test('定数は有効でも鮮度がstoppedなら false', () {
+      final calc = _TakeHomePayCalculator(reviewedAt: DateTime(2026, 1, 1));
+      final now = DateTime(2026, 7, 31); // reviewedAtから180日超
+      expect(calc.parametersValidAt(now), isTrue);
+      expect(calc.isDeliverableAt(now), isFalse);
+      expect(calc.isFullyDeliverableAt(now), isFalse);
+    });
   });
 }
