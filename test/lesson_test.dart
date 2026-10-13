@@ -72,4 +72,22 @@ void main() {
       expect(restored.sources.single.publisher, '国税庁');
     });
   });
+
+  group('LessonCard.termRefs', () {
+    test('termRefsを指定しなければ空リスト', () {
+      const card = LessonCard(cardId: 'c1', text: '要点');
+      expect(card.termRefs, isEmpty);
+      expect(card.toJson().containsKey('termRefs'), isFalse);
+    });
+
+    test('termRefsがJSONに往復する', () {
+      const card = LessonCard(
+        cardId: 'c1',
+        text: 'ふるさと納税は所得控除の一種',
+        termRefs: ['g_furusato', 'g_deduction'],
+      );
+      final restored = LessonCard.fromJson(card.toJson(), 'test');
+      expect(restored.termRefs, ['g_furusato', 'g_deduction']);
+    });
+  });
 }

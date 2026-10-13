@@ -1,4 +1,5 @@
 import 'package:choimana_core/experience/boundary_rule.dart';
+import 'package:choimana_core/glossary.dart';
 import 'package:choimana_core/lesson.dart';
 import 'package:choimana_core/src/source.dart';
 import 'package:choimana_core/validation/content_validator.dart';
@@ -146,6 +147,99 @@ void main() {
 
       final issues = validateBoundaryRule(rule, DateTime(2026, 1, 2));
       expect(issues.any((i) => i.message.contains('一番良い')), isTrue);
+    });
+  });
+
+  group('validateCrossReferences', () {
+    Lesson lessonWith({String? ruleId, String? calcId, List<String> termRefs = const []}) {
+      return Lesson(
+        lessonId: 'A-1',
+        trackId: 'A',
+        title: 't',
+        minutes: 3,
+        kind: ruleId != null ? LessonKind.boundary : LessonKind.predict,
+        rank: LessonRank.low,
+        cards: [LessonCard(cardId: 'c1', text: '要点（目安）', termRefs: termRefs)],
+        quiz: const [
+          Quiz(qid: 'q1', type: QuizType.truefalse, stem: 's', answer: 'true', explain: 'e'),
+          Quiz(qid: 'q2', type: QuizType.truefalse, stem: 's2', answer: 'true', explain: 'e2'),
+        ],
+        ruleId: ruleId,
+        calcId: calcId,
+        sources: [_source()],
+        reviewedAt: DateTime(2026, 1, 1),
+        contentVer: '1',
+      );
+    }
+
+    test('参照先がすべて存在すればエラーなし', () {
+      final issues = validateCrossReferences(
+        lessons: [lessonWith(ruleId: 'r1', termRefs: ['g1'])],
+        boundaryRules: [
+          BoundaryRule(
+            ruleId: 'r1',
+            title: 't',
+            conditions: const [
+              BoundaryCondition(conditionId: 'c', label: 'l', trueLabel: 't', falseLabel: 'f'),
+            ],
+            outcomes: const [
+              BoundaryOutcome(conditionValues: {'c': true}, conclusion: '結論（目安）', basis: '根拠'),
+            ],
+            sources: [_source()],
+            lawVersion: 'v1',
+            reviewedAt: DateTime(2026, 1, 1),
+            contentVer: '1',
+          ),
+        ],
+        glossaryTerms: const [
+          GlossaryTerm(
+            id: 'g1',
+            term: 't',
+            reading: 'r',
+            category: GlossaryCategory.general,
+            definition: 'd',
+          ),
+        ],
+      );
+      expect(issues, isEmpty);
+    });
+
+    test('存在しないruleIdはエラー', () {
+      final issues = validateCrossReferences(
+        lessons: [lessonWith(ruleId: 'missing')],
+        boundaryRules: const [],
+        glossaryTerms: const [],
+      );
+      expect(issues.any((i) => i.level == IssueLevel.error && i.message.contains('missing')), isTrue);
+    });
+
+    test('knownCalcIdsを渡した場合、存在しないcalcIdはエラー', () {
+      final issues = validateCrossReferences(
+        lessons: [lessonWith(calcId: 'missing-calc')],
+        boundaryRules: const [],
+        glossaryTerms: const [],
+        knownCalcIds: {'take-home-pay'},
+      );
+      expect(issues.any((i) => i.message.contains('missing-calc')), isTrue);
+    });
+
+    test('knownCalcIdsを渡さなければcalcIdはチェックしない', () {
+      final issues = validateCrossReferences(
+        lessons: [lessonWith(calcId: 'anything')],
+        boundaryRules: const [],
+        glossaryTerms: const [],
+      );
+      expect(issues, isEmpty);
+    });
+
+    test('存在しないtermRefsは警告（エラーではない）', () {
+      final issues = validateCrossReferences(
+        lessons: [lessonWith(termRefs: ['missing-term'])],
+        boundaryRules: const [],
+        glossaryTerms: const [],
+      );
+      expect(issues.single.level, IssueLevel.warn);
+      expect(issues.single.message, contains('missing-term'));
     });
   });
 }

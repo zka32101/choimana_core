@@ -28,7 +28,12 @@ extension LessonRankFreshness on LessonRank {
 
 /// 要点カード（1レッスンにつき3枚以内。目安60字）。
 class LessonCard {
-  const LessonCard({required this.cardId, required this.text, this.figureRef});
+  const LessonCard({
+    required this.cardId,
+    required this.text,
+    this.figureRef,
+    this.termRefs = const [],
+  });
 
   final String cardId;
   final String text;
@@ -36,11 +41,16 @@ class LessonCard {
   /// SVG等の図の参照キー（任意）。
   final String? figureRef;
 
+  /// このカードの文中で使われている用語の [GlossaryTerm.id] 一覧（任意）。
+  /// アプリ側はこれを使って、カード中の用語をタップで用語集に遷移できるようにする。
+  final List<String> termRefs;
+
   factory LessonCard.fromJson(Map<String, dynamic> j, String where) {
     return LessonCard(
       cardId: reqString(j, 'cardId', where),
       text: reqString(j, 'text', where),
       figureRef: optString(j, 'figureRef', where),
+      termRefs: optStringList(j, 'termRefs', where),
     );
   }
 
@@ -48,6 +58,7 @@ class LessonCard {
         'cardId': cardId,
         'text': text,
         if (figureRef != null) 'figureRef': figureRef,
+        if (termRefs.isNotEmpty) 'termRefs': termRefs,
       };
 }
 

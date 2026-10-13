@@ -206,3 +206,67 @@ List<ValidationIssue> validateBoundaryRule(BoundaryRule rule, DateTime now) {
 
   return issues;
 }
+
+/// コンテンツ全体の参照整合性チェック（[Lesson.ruleId]/[Lesson.calcId]/
+/// [LessonCard.termRefs] が実在するIDを指しているか）。
+///
+/// [validateLesson]/[validateBoundaryRule]/[validateGlossaryTerm] は1件単位の
+/// 検証のため、他のコンテンツを参照する壊れたID（削除・リネーム漏れ等）は
+/// 検出できない。配信前CIでは必ずこちらも併せて実行すること。
+///
+/// [knownCalcIds] は choimana_core が知らない Calculator の `calcId` 一覧を
+/// アプリ側（例: choimana_okane）から渡す。省略した場合、`calcId` のチェックは
+/// 行わない（空集合を「存在しない」と区別できないため）。
+List<ValidationIssue> validateCrossReferences({
+  required List<Lesson> lessons,
+  required List<BoundaryRule> boundaryRules,
+  required List<GlossaryTerm> glossaryTerms,
+  Set<String>? knownCalcIds,
+}) {
+  final issues = <ValidationIssue>[];
+  final ruleIds = boundaryRules.map((r) => r.ruleId).toSet();
+  final termIds = glossaryTerms.map((t) => t.id).toSet();
+
+  for (final lesson in lessons) {
+    final contentId = lesson.lessonId;
+
+    if (lesson.ruleId != null && !ruleIds.contains(lesson.ruleId)) {
+      issues.add(
+        ValidationIssue(
+          level: IssueLevel.error,
+          contentId: contentId,
+          message: 'ruleId「${lesson.ruleId}」に対応する BoundaryRule が見つかりません',
+        ),
+      );
+    }
+
+    if (knownCalcIds != null &&
+        lesson.calcId != null &&
+        !knownCalcIds.contains(lesson.calcId)) {
+      issues.add(
+        ValidationIssue(
+          level: IssueLevel.error,
+          contentId: contentId,
+          message: 'calcId「${lesson.calcId}」に対応する Calculator が見つかりません',
+        ),
+      );
+    }
+
+    for (final card in lesson.cards) {
+      for (final termId in card.termRefs) {
+        if (!termIds.contains(termId)) {
+          issues.add(
+            ValidationIssue(
+              level: IssueLevel.warn,
+              contentId: contentId,
+              message:
+                  'cards[${card.cardId}].termRefs「$termId」に対応する GlossaryTerm が見つかりません',
+            ),
+          );
+        }
+      }
+    }
+  }
+
+  return issues;
+}
