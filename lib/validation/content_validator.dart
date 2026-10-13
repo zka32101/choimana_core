@@ -208,12 +208,39 @@ List<ValidationIssue> validateBoundaryRule(BoundaryRule rule, DateTime now) {
   return issues;
 }
 
+/// 同じIDを持つコンテンツが複数ないかを検出する（[idOf] でIDを取り出す）。
+/// ファイル分割されたコンテンツを1件ずつ検証する [validateLesson] 等では
+/// 検出できない、別ファイル間でのID重複（コピペ時のID変更漏れ等）を防ぐ。
+List<ValidationIssue> _detectDuplicateIds<T>(
+  List<T> items,
+  String Function(T item) idOf,
+  String label,
+) {
+  final issues = <ValidationIssue>[];
+  final seen = <String>{};
+  for (final item in items) {
+    final id = idOf(item);
+    if (!seen.add(id)) {
+      issues.add(
+        ValidationIssue(
+          level: IssueLevel.error,
+          contentId: id,
+          message: '$labelのID「$id」が重複しています',
+        ),
+      );
+    }
+  }
+  return issues;
+}
+
 /// コンテンツ全体の参照整合性チェック（[Lesson.ruleId]/[Lesson.calcId]/
-/// [LessonCard.termRefs]・[Track.lessonIds] が実在するIDを指しているか）。
+/// [LessonCard.termRefs]・[Track.lessonIds] が実在するIDを指しているか、
+/// および各コンテンツのIDが重複していないか）。
 ///
 /// [validateLesson]/[validateBoundaryRule]/[validateGlossaryTerm] は1件単位の
-/// 検証のため、他のコンテンツを参照する壊れたID（削除・リネーム漏れ等）は
-/// 検出できない。配信前CIでは必ずこちらも併せて実行すること。
+/// 検証のため、他のコンテンツを参照する壊れたID（削除・リネーム漏れ等）や、
+/// 別ファイル間でのID重複（コピペ時のID変更漏れ等）は検出できない。
+/// 配信前CIでは必ずこちらも併せて実行すること。
 ///
 /// [knownCalcIds] は choimana_core が知らない Calculator の `calcId` 一覧を
 /// アプリ側（例: choimana_okane）から渡す。省略した場合、`calcId` のチェックは
@@ -233,6 +260,11 @@ List<ValidationIssue> validateCrossReferences({
   final ruleIds = boundaryRules.map((r) => r.ruleId).toSet();
   final termIds = glossaryTerms.map((t) => t.id).toSet();
   final lessonIds = lessons.map((l) => l.lessonId).toSet();
+
+  issues.addAll(_detectDuplicateIds(lessons, (l) => l.lessonId, 'Lesson'));
+  issues.addAll(_detectDuplicateIds(boundaryRules, (r) => r.ruleId, 'BoundaryRule'));
+  issues.addAll(_detectDuplicateIds(glossaryTerms, (t) => t.id, 'GlossaryTerm'));
+  issues.addAll(_detectDuplicateIds(tracks, (t) => t.trackId, 'Track'));
 
   for (final track in tracks) {
     for (final lessonId in track.lessonIds) {

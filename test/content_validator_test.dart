@@ -152,9 +152,14 @@ void main() {
   });
 
   group('validateCrossReferences', () {
-    Lesson lessonWith({String? ruleId, String? calcId, List<String> termRefs = const []}) {
+    Lesson lessonWith({
+      String id = 'A-1',
+      String? ruleId,
+      String? calcId,
+      List<String> termRefs = const [],
+    }) {
       return Lesson(
-        lessonId: 'A-1',
+        lessonId: id,
         trackId: 'A',
         title: 't',
         minutes: 3,
@@ -286,6 +291,88 @@ void main() {
             i.message.contains('missing-lesson')),
         isTrue,
       );
+    });
+
+    test('同じlessonIdのLessonが複数あるとエラー', () {
+      final issues = validateCrossReferences(
+        lessons: [lessonWith(id: 'dup'), lessonWith(id: 'dup')],
+        boundaryRules: const [],
+        glossaryTerms: const [],
+      );
+      expect(
+        issues.any((i) => i.level == IssueLevel.error && i.message.contains('dup')),
+        isTrue,
+      );
+    });
+
+    test('同じruleIdのBoundaryRuleが複数あるとエラー', () {
+      BoundaryRule rule() => BoundaryRule(
+            ruleId: 'dup-rule',
+            title: 't',
+            conditions: const [
+              BoundaryCondition(conditionId: 'c', label: 'l', trueLabel: 't', falseLabel: 'f'),
+            ],
+            outcomes: const [
+              BoundaryOutcome(conditionValues: {'c': true}, conclusion: '結論（目安）', basis: '根拠'),
+            ],
+            sources: [_source()],
+            lawVersion: 'v1',
+            reviewedAt: DateTime(2026, 1, 1),
+            contentVer: '1',
+          );
+
+      final issues = validateCrossReferences(
+        lessons: const [],
+        boundaryRules: [rule(), rule()],
+        glossaryTerms: const [],
+      );
+      expect(
+        issues.any((i) => i.level == IssueLevel.error && i.message.contains('dup-rule')),
+        isTrue,
+      );
+    });
+
+    test('同じidのGlossaryTermが複数あるとエラー', () {
+      GlossaryTerm term() => const GlossaryTerm(
+            id: 'dup-term',
+            term: 't',
+            reading: 'r',
+            category: GlossaryCategory.general,
+            definition: 'd',
+          );
+
+      final issues = validateCrossReferences(
+        lessons: const [],
+        boundaryRules: const [],
+        glossaryTerms: [term(), term()],
+      );
+      expect(
+        issues.any((i) => i.level == IssueLevel.error && i.message.contains('dup-term')),
+        isTrue,
+      );
+    });
+
+    test('同じtrackIdのTrackが複数あるとエラー', () {
+      const track = Track(trackId: 'dup-track', genreId: 'g', name: 'n', order: 1, lessonIds: []);
+      final issues = validateCrossReferences(
+        lessons: const [],
+        boundaryRules: const [],
+        glossaryTerms: const [],
+        tracks: const [track, track],
+      );
+      expect(
+        issues.any((i) => i.level == IssueLevel.error && i.message.contains('dup-track')),
+        isTrue,
+      );
+    });
+
+    test('IDがすべて一意ならID重複のエラーは出ない', () {
+      final issues = validateCrossReferences(
+        lessons: [lessonWith(id: 'A-1'), lessonWith(id: 'A-2')],
+        boundaryRules: const [],
+        glossaryTerms: const [],
+      );
+      expect(issues.where((i) => i.message.contains('重複')), isEmpty);
     });
   });
 }
